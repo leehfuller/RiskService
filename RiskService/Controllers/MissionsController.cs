@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using SkiaSharp;
@@ -30,6 +31,8 @@ namespace RiskService.Controllers
             "Destroy all PINK armies. If you are PINK or another player kills PINK first, then capture 24 territories"
         };
 
+        private static readonly string CardBlank = "CardTemplate.png"; 
+
         private static readonly string[] CardImages = new[]
         {
             "Napoleon2.jpg",
@@ -42,11 +45,12 @@ namespace RiskService.Controllers
 
         private readonly ILogger<MissionsController> _logger;
 
+        private CardCreator cardCreator = new CardCreator(); 
+
         public MissionsController(ILogger<MissionsController> logger)
         {
             _logger = logger;
         }
-
 
         [HttpGet]
         public string Get()
@@ -70,7 +74,7 @@ namespace RiskService.Controllers
 
             string missionImage = CardImages[rng.Next(CardImages.Length)];
 
-            string createCard64 = "fgfdgfdgfdgfd";
+            string createCard64 = cardCreator.getFromImage(CardBlank);
             return (createCard64);
         }
 
