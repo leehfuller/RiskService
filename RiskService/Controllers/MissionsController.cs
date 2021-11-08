@@ -22,7 +22,7 @@ namespace RiskService.Controllers
             "Capture North America and Australia",
             "Capture North America and Africa",
             "Capture 24 territories",
-            "Capture 18 territories and occupy each with two troop",
+            "Capture 18 territories and occupy each with two troops",
             "Destroy all BLUE armies. If you are BLUE or another player kills BLUE first, then capture 24 territories",
             "Destroy all RED armies. If you are RED or another player kills RED first, then capture 24 territories",
             "Destroy all GREEN armies. If you are GREEN or another player kills GREEN first, then capture 24 territories",
