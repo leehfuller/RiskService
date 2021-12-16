@@ -4,11 +4,15 @@ using System.Linq;
 using System.IO;
 using System.Threading.Tasks;
 using SkiaSharp;
+using System.Text.RegularExpressions;
 
 namespace RiskService
 {
     public class CardCreator
     {
+		private int cardHeight = 400;
+		private int cardWidth = 300;
+
         public byte[] getFileBytes(string loadFile)
         {
             FileStream fs = new FileStream(loadFile, FileMode.Open, FileAccess.Read);
@@ -25,100 +29,77 @@ namespace RiskService
             return (Convert.ToBase64String(FileBytes));
         }
 
-        public string createMissionImage(string currentFile)
+		public SKBitmap getSkiaImage(string loadFile)
+		{
+			byte[] FileBytesCard = getFileBytes(loadFile);
+			MemoryStream skiaCard = new MemoryStream(FileBytesCard);
+			SKBitmap cardBitmap = SKBitmap.Decode(skiaCard);
+			return (cardBitmap);
+		}
+
+		public string createMissionImage(string baseCard, string missionCard, string missionText)
         {
-            byte[] FileBytes = getFileBytes(currentFile);
+			SKPaint missionPaint = new SKPaint { TextSize = 12.0f, IsAntialias = true, Color = SKColors.Black, IsStroke = false, Typeface = SKTypeface.FromFamilyName("Courier New") };
+			SKImage finalCardImage = null;
 
-            MemoryStream skiaMS = new MemoryStream(FileBytes);
-            SKBitmap asciiBitmap = SKBitmap.Decode(skiaMS);
+			SKBitmap cardBitmap = getSkiaImage(baseCard);
+			SKBitmap missionBitmap = getSkiaImage(missionCard);
 
-            SKColor[] pixels1 = asciiBitmap.Pixels;
+			SKSurface drawSurface = SKSurface.Create(new SKImageInfo(cardWidth, cardHeight));
+			SKCanvas drawCanvas = drawSurface.Canvas;
+			drawCanvas.Clear(SKColors.Transparent);
 
+			drawCanvas.DrawImage(SKImage.FromBitmap(cardBitmap), SKRect.Create(0, 0, cardWidth, cardHeight/2));
+			drawCanvas.DrawImage(SKImage.FromBitmap(missionBitmap), SKRect.Create(0, cardHeight/2, cardWidth, cardHeight));
 
-            return ("");
+			int textWidth = 0, textHeight = 0;
+			string longestText = "";
+			(textWidth, textHeight, longestText) = calculateTextBounds(missionText);
+			drawTextLines(missionText, 0, 0, missionPaint, drawCanvas);
+
+			finalCardImage = drawSurface.Snapshot();
+			SKData missionPNG = finalCardImage.Encode(SKEncodedImageFormat.Png, 100);
+			byte[] missionBytes = missionPNG.ToArray();
+
+			return (Convert.ToBase64String(missionBytes));
         }
 
-
-		void NotMain(string[] args)
+		private static void drawTextLines(string str, float x, float y, SKPaint paint, SKCanvas canvas)
 		{
-			//get all the files in a directory
-			string[] files = Directory.GetFiles("images");
+			string[] lines = str.Split("\n");
+			float txtSize = paint.TextSize;
 
-			//combine them into one image
-			SKImage stitchedImage = Combine(files);
-
-			//make sure the output folder exists
-			if (!Directory.Exists("output"))
+			for (int i = 0; i < lines.Length; i++)
 			{
-				Directory.CreateDirectory("output");
-			}
-
-			//save the new image
-			using (SKData encoded = stitchedImage.Encode(SKEncodedImageFormat.Png, 100))
-			using (Stream outFile = File.OpenWrite("output/stitchedImage.png"))
-			{
-				encoded.SaveTo(outFile);
+				canvas.DrawText(TrimNonAscii(lines[i]), x, y + (txtSize * i), paint);
 			}
 		}
 
-		public static SKImage Combine(string[] files)
+		private static string TrimNonAscii(string value)
 		{
-			//read all images into memory
-			List<SKBitmap> images = new List<SKBitmap>();
-			SKImage finalImage = null;
+			string pattern = "[^ -~]+";
+			Regex reg_exp = new Regex(pattern);
+			return reg_exp.Replace(value, "");
+		}
 
-			try
+		private static (int, int, string) calculateTextBounds(string str)
+		{
+			string[] lines = str.Split("\n");
+			int maxWidth = 0;
+			int maxHeight = 0;
+			string longestString = "";
+
+			for (int i = 0; i < lines.Length; i++)
 			{
-				int width = 0;
-				int height = 0;
-
-				foreach (string image in files)
+				if (lines[i].Length > maxWidth)
 				{
-					//create a bitmap from the file and add it to the list
-					SKBitmap bitmap = SKBitmap.Decode(image);
-
-					//update the size of the final bitmap
-					width += bitmap.Width;
-					height += bitmap.Height;
-
-					images.Add(bitmap);
+					maxWidth = lines[i].Length;
+					longestString = lines[i];
 				}
-
-				//get a surface so we can draw an image
-				using (var tempSurface = SKSurface.Create(new SKImageInfo(width, height)))
-				{
-					//get the drawing canvas of the surface
-					var canvas = tempSurface.Canvas;
-
-					//set background color
-					canvas.Clear(SKColors.Transparent);
-
-					//go through each image and draw it on the final image
-					int offset = 0;
-					int offsetTop = 0;
-					foreach (SKBitmap image in images)
-					{
-						canvas.DrawBitmap(image, SKRect.Create(offset, offsetTop, image.Width, image.Height));
-						offsetTop = offsetTop > 0 ? 0 : image.Height / 2;
-						offset += (int)(image.Width / 1.6);
-					}
-
-					// return the surface as a manageable image
-					finalImage = tempSurface.Snapshot();
-				}
-
-				//return the image that was just drawn
-				return finalImage;
-			}
-			finally
-			{
-				//clean up memory
-				foreach (SKBitmap image in images)
-				{
-					image.Dispose();
-				}
+				maxHeight++;
 			}
 
+			return (maxWidth, maxHeight, longestString);
 		}
 	}
 }

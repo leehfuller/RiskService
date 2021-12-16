@@ -73,8 +73,8 @@ namespace RiskService.Controllers
             if (givenMission == "") missionText = Missions[rng.Next(Missions.Length)];
 
             string missionImage = CardImages[rng.Next(CardImages.Length)];
+            string createCard64 = cardCreator.createMissionImage(CardBlank, missionImage, missionText);
 
-            string createCard64 = cardCreator.getFromImage(CardBlank);
             return (createCard64);
         }
 
