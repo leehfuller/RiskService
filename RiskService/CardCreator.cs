@@ -60,6 +60,7 @@ namespace RiskService
 			string longestText = "";
 			(textWidth, textHeight, longestText) = calculateTextBounds(missionText);
 			drawTextLines(missionText, 20, (cardHeight/2)+40, missionPaint, drawCanvas);
+			drawTextLines(DateTime.Now.ToString("yyyy-MM-dd"), 20, cardHeight - 20, missionPaint, drawCanvas);
 
 			finalCardImage = drawSurface.Snapshot();
 			SKData missionPNG = finalCardImage.Encode(SKEncodedImageFormat.Png, 100);
