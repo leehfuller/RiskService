@@ -35,7 +35,7 @@ namespace RiskService.Controllers
 
         private static readonly string[] CardImages = new[]
         {
-            "Napoleon2.jpg",
+            "Napoleon2.png",
             "Wellington2.jpg",
             "RedCoats2.jpg",
             "Infantry2.jpg",

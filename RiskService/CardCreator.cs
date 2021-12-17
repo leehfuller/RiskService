@@ -13,6 +13,7 @@ namespace RiskService
 		private int cardHeight = 300;
 		private int cardWidth = 200;
 		private int cardTextWidth = 30;
+		private string qrCode = "QRLink.png";
 
         public byte[] getFileBytes(string loadFile)
         {
@@ -45,13 +46,15 @@ namespace RiskService
 
 			SKBitmap cardBitmap = getSkiaImage(baseCard);
 			SKBitmap missionBitmap = getSkiaImage(missionCard);
+			SKBitmap qrlinkBitmap = getSkiaImage(qrCode);
 
 			SKSurface drawSurface = SKSurface.Create(new SKImageInfo(cardWidth, cardHeight));
 			SKCanvas drawCanvas = drawSurface.Canvas;
 			drawCanvas.Clear(SKColors.Transparent);
 
 			drawCanvas.DrawImage(SKImage.FromBitmap(cardBitmap), SKRect.Create(0, 0, cardWidth, cardHeight));
-			drawCanvas.DrawImage(SKImage.FromBitmap(missionBitmap), SKRect.Create(20, 20, cardWidth-40, cardHeight/2));
+			drawCanvas.DrawImage(SKImage.FromBitmap(missionBitmap), SKRect.Create(20, 20, cardWidth-40, (cardHeight/2)));
+			drawCanvas.DrawImage(SKImage.FromBitmap(qrlinkBitmap), SKRect.Create(cardWidth-65, cardHeight-70, 60, 60));
 
 			int textWidth = 0, textHeight = 0;
 			string longestText = "";
@@ -63,7 +66,7 @@ namespace RiskService
 			byte[] missionBytes = missionPNG.ToArray();
 
 			#if DEBUG
-				using (var filestream = File.OpenWrite("debug.png"))
+			using (var filestream = File.OpenWrite("debug.png"))
 				{
 				missionPNG.SaveTo(filestream);
 				}
